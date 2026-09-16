@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>カクヤス武蔵小杉 ルート採点シミュレーター</title>
+  <title>カクヤス武蔵小杉 ルート採点＆模範解答シミュレーター</title>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -12,31 +12,35 @@
     header { background: #1e293b; color: #fff; padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155; }
     .depot-badge { font-size: 0.75rem; background: #3b82f6; color: #fff; padding: 3px 8px; border-radius: 999px; font-weight: bold; }
 
-    /* 採点スコアボード */
-    .score-card { background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid #3b82f6; border-radius: 14px; padding: 16px; margin-bottom: 14px; text-align: center; box-shadow: 0 4px 14px rgba(0,0,0,0.4); }
-    .score-title { font-size: 0.8rem; color: #94a3b8; letter-spacing: 0.05em; }
-    .score-value { font-size: 3rem; font-weight: 900; margin: 4px 0; color: #38bdf8; text-shadow: 0 0 12px rgba(56,189,248,0.4); }
-    .score-value.rank-s { color: #f59e0b; text-shadow: 0 0 16px rgba(245,158,11,0.5); }
-    .score-value.rank-a { color: #10b981; }
-    .score-value.rank-b { color: #3b82f6; }
-    .score-value.rank-c { color: #ef4444; }
+    /* 採点比較ボード */
+    .score-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .score-card { background: #1e293b; border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #334155; }
+    .score-card.user { border-color: #3b82f6; }
+    .score-card.optimal { border-color: #10b981; background: linear-gradient(180deg, #1e293b, #064e3b); }
 
-    .score-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; border-top: 1px solid #334155; padding-top: 10px; font-size: 0.78rem; }
-    .stat-label { color: #64748b; margin-bottom: 2px; }
-    .stat-val { font-weight: bold; font-size: 0.95rem; color: #f8fafc; }
+    .score-title { font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px; }
+    .score-val { font-size: 2.2rem; font-weight: 900; line-height: 1.1; margin-bottom: 4px; }
+    .score-val.user-val { color: #38bdf8; }
+    .score-val.opt-val { color: #34d399; }
+    
+    .score-sub { font-size: 0.78rem; color: #cbd5e1; font-weight: 500; }
 
-    .comment-box { margin-top: 10px; padding: 8px 12px; border-radius: 8px; background: #1e293b; font-size: 0.76rem; color: #cbd5e1; text-align: left; line-height: 1.4; border-left: 4px solid #38bdf8; }
+    /* 正解ルート案内枠 */
+    .optimal-box { background: #064e3b; border: 1.5px dashed #10b981; border-radius: 10px; padding: 12px; margin-bottom: 12px; font-size: 0.82rem; }
+    .optimal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .optimal-title { font-weight: bold; color: #a7f3d0; display: flex; align-items: center; gap: 4px; }
+    .btn-apply-opt { background: #10b981; color: #022c22; border: none; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
+    .btn-apply-opt:active { background: #059669; }
+    .optimal-flow { color: #ecfdf5; line-height: 1.5; font-family: monospace; font-size: 0.8rem; word-break: break-all; }
 
     .card { background: #1e293b; border-radius: 12px; padding: 14px; margin-bottom: 12px; border: 1px solid #334155; }
     h2 { font-size: 0.88rem; color: #94a3b8; margin-bottom: 8px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
     
-    .textarea-addr { width: 100%; background: #0f172a; color: #f8fafc; border: 1.5px solid #334155; border-radius: 8px; padding: 10px; font-size: 0.88rem; font-family: inherit; resize: vertical; min-height: 80px; margin-top: 4px; }
+    .textarea-addr { width: 100%; background: #0f172a; color: #f8fafc; border: 1.5px solid #334155; border-radius: 8px; padding: 10px; font-size: 0.88rem; font-family: inherit; resize: vertical; min-height: 75px; margin-top: 4px; }
     .textarea-addr:focus { outline: none; border-color: #38bdf8; }
 
     .btn-add { width: 100%; background: #334155; color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 0.88rem; cursor: pointer; margin-top: 6px; }
-    .btn-add:active { filter: brightness(0.85); }
-
-    /* リストアイテム */
+    
     .order-item { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
     .order-item.sortable-ghost { opacity: 0.2; background: #3b82f6; }
     
@@ -48,7 +52,6 @@
 
     .zone-north { background: #1e3a8a; color: #93c5fd; }
     .zone-south { background: #14532d; color: #86efac; }
-    .zone-east { background: #701a75; color: #f472b6; }
     .zone-west { background: #7c2d12; color: #fdba74; }
 
     .btn-delete { background: none; border: none; color: #ef4444; font-size: 0.85rem; cursor: pointer; padding: 4px 6px; margin-left: 6px; }
@@ -62,32 +65,32 @@
   <header>
     <div>
       <div style="font-weight: bold; font-size: 0.95rem;">カクヤス武蔵小杉店</div>
-      <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">新丸子東2丁目 発着シミュレーター</div>
+      <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">新丸子東2丁目 発着採点</div>
     </div>
-    <span class="depot-badge">ルート採点モード</span>
+    <span class="depot-badge">答え合わせ機能付</span>
   </header>
 
-  <!-- リアルタイム採点ボード -->
-  <div class="score-card" id="score-board">
-    <div class="score-title">あなたのルートの総合スコア</div>
-    <div class="score-value rank-a" id="score-num">-- 点</div>
-    <div class="score-stats">
-      <div>
-        <div class="stat-label">推定帰還時間</div>
-        <div class="stat-val" id="stat-time">-- 分</div>
-      </div>
-      <div>
-        <div class="stat-label">総走行距離</div>
-        <div class="stat-val" id="stat-dist">-- km</div>
-      </div>
-      <div>
-        <div class="stat-label">線路横断回数</div>
-        <div class="stat-val" id="stat-cross">-- 回</div>
-      </div>
+  <!-- 採点比較ボード -->
+  <div class="score-container" id="score-container" style="display: none;">
+    <div class="score-card user">
+      <div class="score-title">あなたの現在スコア</div>
+      <div class="score-val user-val" id="user-score">-- 点</div>
+      <div class="score-sub" id="user-time">予想: -- 分</div>
     </div>
-    <div class="comment-box" id="score-comment">
-      配達先を入力し、並び順を調整すると採点結果が表示されます。
+    <div class="score-card optimal">
+      <div class="score-title">理論上の満点（正解）</div>
+      <div class="score-val opt-val">100 点</div>
+      <div class="score-sub" id="opt-time">最速: -- 分</div>
     </div>
+  </div>
+
+  <!-- 正解ルート案内枠 -->
+  <div class="optimal-box" id="optimal-box" style="display: none;">
+    <div class="optimal-header">
+      <span class="optimal-title">🎯 満点（正解）の巡回順序</span>
+      <button class="btn-apply-opt" onclick="applyOptimalRoute()">💡 正解順に並び替える</button>
+    </div>
+    <div class="optimal-flow" id="optimal-flow-text">--</div>
   </div>
 
   <div class="card">
@@ -95,13 +98,13 @@
       <span>📝 配達先リスト入力</span>
       <span id="order-count" style="font-size: 0.75rem; color: #38bdf8;">0件</span>
     </h2>
-    <textarea id="address-input" class="textarea-addr" placeholder="住所を複数行で貼り付け可能&#13;&#10;例:&#13;&#10;川崎市中原区小杉町1-526&#13;&#10;川崎市中原区新丸子町738"></textarea>
+    <textarea id="address-input" class="textarea-addr" placeholder="住所を複数行で貼り付け可能"></textarea>
     <button class="btn-add" onclick="addAddresses()">住所を追加する ＋</button>
   </div>
 
   <div class="card">
     <h2>
-      <span>📍 巡回順 (☰を上下にドラッグして採点スコアを競う)</span>
+      <span>📍 巡回順 (☰を上下にドラッグして満点を狙う)</span>
       <button class="btn-delete" onclick="clearOrders()">全件削除</button>
     </h2>
     <div id="order-list">
@@ -113,7 +116,7 @@
 
   <div id="gmaps-box" style="display: none; margin-bottom: 24px;">
     <a id="btn-gmaps" class="btn-all-gmaps" href="#" target="_blank">
-      🗺️ この最高得点ルートでGoogleマップを起動
+      🗺️ 現在の順序でGoogleマップを起動
     </a>
   </div>
 
@@ -125,11 +128,6 @@
       zone: "BASE"
     };
 
-    // 中原区主要エリアの特性・線路境界ゾーン定義
-    // ZONE_NORTH: 南武線・東横線の北東（丸子通、新丸子、上丸子）
-    // ZONE_WEST: 西側（小杉町、御殿町、今井南町）
-    // ZONE_SOUTH_WEST: 南西（木月、住吉町、苅宿）
-    // ZONE_SOUTH_EAST: 南東（下沼部、市ノ坪、平間、田尻町）
     const AREA_ZONES = [
       { key: "上丸子", zone: "NORTH", label: "北東(丸子)", lat: 35.5845, lng: 139.6690 },
       { key: "丸子通", zone: "NORTH", label: "北東(丸子)", lat: 35.5825, lng: 139.6650 },
@@ -151,6 +149,7 @@
     ];
 
     let orders = [];
+    let bestOrderList = []; // 満点（正解）の並び順
     let sortableInstance = null;
 
     function addAddresses() {
@@ -178,20 +177,9 @@
       renderList();
     }
 
-    // 採点エンジンのコアロジック
-    function calculateScore() {
-      if (orders.length === 0) {
-        document.getElementById('score-num').innerText = '-- 点';
-        document.getElementById('stat-time').innerText = '-- 分';
-        document.getElementById('stat-dist').innerText = '-- km';
-        document.getElementById('stat-cross').innerText = '-- 回';
-        document.getElementById('score-comment').innerText = '配達先を入力してください。';
-        return;
-      }
-
-      // 経路ポイント: 店舗 ➔ 1 ➔ 2 ➔ ... ➔ 店舗
-      const points = [DEPOT, ...orders, DEPOT];
-
+    // 巡回コスト（時間分）を計算する共通関数
+    function evaluateRouteCost(routeList) {
+      const points = [DEPOT, ...routeList, DEPOT];
       let totalKm = 0;
       let railwayCrossings = 0;
       let zoneShuffles = 0;
@@ -200,13 +188,10 @@
         const from = points[i];
         const to = points[i + 1];
 
-        // 距離概算（マンハッタン距離＋道路補正 1.25倍）
         const dLat = Math.abs(from.lat - to.lat) * 111;
         const dLng = Math.abs(from.lng - to.lng) * 91;
-        const legKm = (dLat + dLng) * 1.25;
-        totalKm += legKm;
+        totalKm += (dLat + dLng) * 1.25;
 
-        // 南武線・横須賀線の分断またぎ判定
         const isFromNorth = from.zone.includes("NORTH") || from.zone === "BASE";
         const isToNorth = to.zone.includes("NORTH") || to.zone === "BASE";
         const isFromSouth = from.zone.includes("SOUTH");
@@ -216,61 +201,92 @@
           railwayCrossings++;
         }
 
-        // 同一ゾーン外への余計な出入り（ばらつき度）
         if (from.zone !== to.zone && from.zone !== "BASE" && to.zone !== "BASE") {
           zoneShuffles++;
         }
       }
 
-      // 推定時間計算（時速16kmの市内走行想定 ＋ 1件あたり3分の作業停車時間 ＋ 踏切・信号待ち1分/回）
-      const drivingMinutes = Math.round((totalKm / 16) * 60);
-      const deliveryMinutes = orders.length * 3;
-      const penaltyMinutes = railwayCrossings * 2.5; // 踏切・大通り越えロスタイム
-      const totalMinutes = Math.round(drivingMinutes + deliveryMinutes + penaltyMinutes);
+      const drivingMin = (totalKm / 16) * 60;
+      const deliveryMin = routeList.length * 3;
+      const penaltyMin = railwayCrossings * 2.5 + (zoneShuffles > routeList.length * 0.7 ? 3 : 0);
+      const totalMinutes = Math.round(drivingMin + deliveryMin + penaltyMin);
 
-      // スコア計算（100点満点からの減点方式）
-      let score = 100;
-      
-      // 1. 線路またぎペナルティ（往復2回までは許容、3回目以降は1回につき-12点）
-      if (railwayCrossings > 2) {
-        score -= (railwayCrossings - 2) * 12;
+      return { totalMinutes, totalKm, railwayCrossings };
+    }
+
+    // 全巡回パターンを総当たりして「満点（正解）」を探索
+    function findOptimalRoute(arr) {
+      if (arr.length <= 1) return { route: arr, cost: evaluateRouteCost(arr) };
+
+      function permute(elements) {
+        if (elements.length <= 1) return [elements];
+        let perms = [];
+        for (let i = 0; i < elements.length; i++) {
+          const el = elements[i];
+          const rest = elements.slice(0, i).concat(elements.slice(i + 1));
+          const sub = permute(rest);
+          for (const s of sub) {
+            perms.push([el, ...s]);
+          }
+        }
+        return perms;
       }
 
-      // 2. 距離の無駄減点（件数×1.6kmを標準とし、それ以上伸びると減点）
-      const baselineKm = orders.length * 1.5 + 2.0;
-      if (totalKm > baselineKm) {
-        score -= Math.round((totalKm - baselineKm) * 5);
+      // 8件以下なら完全総当たり（例: 5件=120通り）
+      const allPerms = (arr.length <= 8) ? permute(arr) : [arr];
+      let best = null;
+      let minCost = Infinity;
+
+      for (const p of allPerms) {
+        const cost = evaluateRouteCost(p);
+        if (cost.totalMinutes < minCost) {
+          minCost = cost.totalMinutes;
+          best = { route: p, cost: cost };
+        }
       }
 
-      // 3. ゾーンが飛び飛びなら減点
-      if (zoneShuffles > orders.length * 0.8) {
-        score -= 10;
+      return best;
+    }
+
+    // 採点と答え合わせの実行
+    function updateScoreAndAnswer() {
+      if (orders.length === 0) {
+        document.getElementById('score-container').style.display = 'none';
+        document.getElementById('optimal-box').style.display = 'none';
+        return;
       }
 
-      score = Math.max(20, Math.min(100, Math.round(score)));
+      // 1. 満点（正解）の算出
+      const optimalResult = findOptimalRoute([...orders]);
+      bestOrderList = optimalResult.route;
+      const optCost = optimalResult.cost;
 
-      // 画面反映
-      const scoreEl = document.getElementById('score-num');
-      scoreEl.innerText = `${score} 点`;
-      scoreEl.className = 'score-value ' + (score >= 90 ? 'rank-s' : score >= 80 ? 'rank-a' : score >= 65 ? 'rank-b' : 'rank-c');
+      // 2. ユーザーの現在ルートのコスト
+      const userCost = evaluateRouteCost(orders);
 
-      document.getElementById('stat-time').innerText = `${totalMinutes} 分`;
-      document.getElementById('stat-dist').innerText = `${totalKm.toFixed(1)} km`;
-      document.getElementById('stat-cross').innerText = `${railwayCrossings} 回`;
+      // スコア判定（満点の所要時間との差で算出）
+      const timeDiff = userCost.totalMinutes - optCost.totalMinutes;
+      let userScore = 100 - (timeDiff * 6); // 1分オーバーするごとに-6点
+      userScore = Math.max(20, Math.min(100, Math.round(userScore)));
 
-      // 講評コメント
-      let comment = '';
-      if (score >= 90) {
-        comment = '🏆 素晴らしい職人ルート！線路の渡り回数が最小限で、エリアごとの一筆書きが完璧に決まっています。最速で帰着可能です。';
-      } else if (score >= 80) {
-        comment = '👍 良好なルートです。大きな無駄はありません。踏切や幹線道路の右折を1箇所整理できれば満点クラスになります。';
-      } else if (score >= 65) {
-        comment = '⚠️ やや大回りの傾向。北側（丸子方面）と南側（元住吉・平間方面）を行き来していませんか？同エリアを固めるとさらに数分縮みます。';
-      } else {
-        comment = '🚨 線路や幹線道路を何度も行ったり来たりしています！北か南のどちらかを先に全件片付けてから逆側へ向かう順序に入れ替えてみてください。';
-      }
+      // 画面更新
+      document.getElementById('score-container').style.display = 'grid';
+      document.getElementById('optimal-box').style.display = 'block';
 
-      document.getElementById('score-comment').innerText = comment;
+      document.getElementById('user-score').innerText = `${userScore} 点`;
+      document.getElementById('user-time').innerText = `予想: ${userCost.totalMinutes} 分 (${userCost.totalKm.toFixed(1)}km)`;
+      document.getElementById('opt-time').innerText = `最速: ${optCost.totalMinutes} 分 (${optCost.totalKm.toFixed(1)}km)`;
+
+      // 正解ルートテキスト
+      const optNames = bestOrderList.map((o, idx) => `[${idx + 1}] ${o.name.replace(/神奈川県|川崎市中原区/g, '')}`);
+      document.getElementById('optimal-flow-text').innerText = '店舗 ➔ ' + optNames.join(' ➔ ') + ' ➔ 店舗帰着';
+    }
+
+    // ワンタップで正解順序を適用
+    function applyOptimalRoute() {
+      if (bestOrderList.length === 0) return;
+      orders = [...bestOrderList];
+      renderList();
     }
 
     function renderList() {
@@ -280,7 +296,7 @@
       if (orders.length === 0) {
         container.innerHTML = '<div style="text-align: center; color: #64748b; font-size: 0.82rem; padding: 20px;">住所を入力してください。</div>';
         document.getElementById('gmaps-box').style.display = 'none';
-        calculateScore();
+        updateScoreAndAnswer();
         return;
       }
 
@@ -306,9 +322,8 @@
       container.innerHTML = html;
       document.getElementById('gmaps-box').style.display = 'block';
 
-      // Googleマップ起動リンク生成
       updateGmapsUrl();
-      calculateScore();
+      updateScoreAndAnswer();
 
       if (sortableInstance) sortableInstance.destroy();
       sortableInstance = new Sortable(container, {
