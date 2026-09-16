@@ -5,43 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>カクヤス武蔵小杉 配達ナビオーガナイザー</title>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f1f5f9; color: #0f172a; padding: 12px; max-width: 600px; margin: 0 auto; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 12px; max-width: 600px; margin: 0 auto; }
     
-    header { background: #1e293b; color: #fff; padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .depot-badge { font-size: 0.75rem; background: #3b82f6; padding: 3px 8px; border-radius: 999px; font-weight: bold; }
+    header { background: #1e293b; color: #fff; padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155; }
+    .depot-badge { font-size: 0.75rem; background: #2563eb; color: #fff; padding: 3px 8px; border-radius: 999px; font-weight: bold; }
 
-    .card { background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
-    h2 { font-size: 0.88rem; color: #475569; margin-bottom: 8px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    .card { background: #1e293b; border-radius: 12px; padding: 14px; margin-bottom: 12px; border: 1px solid #334155; }
+    h2 { font-size: 0.88rem; color: #94a3b8; margin-bottom: 8px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
     
     .btn-camera { width: 100%; background: #0284c7; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 0.95rem; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; }
     .btn-camera:active { background: #0369a1; }
     
-    .textarea-addr { width: 100%; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 10px; font-size: 0.88rem; font-family: inherit; resize: vertical; min-height: 80px; margin-top: 8px; }
-    .textarea-addr:focus { outline: none; border-color: #2563eb; }
+    .textarea-addr { width: 100%; background: #0f172a; color: #f8fafc; border: 1.5px solid #334155; border-radius: 8px; padding: 10px; font-size: 0.88rem; font-family: inherit; resize: vertical; min-height: 80px; margin-top: 8px; }
+    .textarea-addr:focus { outline: none; border-color: #38bdf8; }
 
-    .btn-add { width: 100%; background: #0f172a; color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 0.88rem; cursor: pointer; margin-top: 6px; }
+    .btn-add { width: 100%; background: #334155; color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 0.88rem; cursor: pointer; margin-top: 6px; }
     
-    .btn-optimize { width: 100%; background: #16a34a; color: #fff; border: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1.05rem; cursor: pointer; box-shadow: 0 3px 8px rgba(22,163,74,0.3); display: flex; justify-content: center; align-items: center; gap: 6px; }
-    .btn-optimize:active { background: #15803d; }
+    .btn-optimize { width: 100%; background: #10b981; color: #fff; border: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1.05rem; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16,185,129,0.25); }
+    .btn-optimize:active { background: #059669; }
 
-    .order-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
-    .order-num { width: 28px; height: 28px; border-radius: 50%; background: #2563eb; color: #fff; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 10px; }
-    .order-info { flex: 1; overflow: hidden; }
-    .order-name { font-size: 0.9rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #1e293b; }
-    .order-detail { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
-
-    .btn-nav-single { background: #10b981; color: #fff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; margin-left: 8px; }
-    .btn-nav-single:active { filter: brightness(0.9); }
-
-    .btn-delete { background: none; border: none; color: #ef4444; font-size: 0.8rem; cursor: pointer; padding: 4px 6px; margin-left: 4px; }
+    .order-item { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; touch-action: manipulation; }
+    .order-item.sortable-ghost { opacity: 0.3; background: #334155; }
     
-    .btn-all-gmaps { display: block; text-align: center; background: #2563eb; color: #fff; text-decoration: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1rem; box-shadow: 0 3px 8px rgba(37,99,235,0.3); margin-top: 12px; }
+    .drag-handle { cursor: grab; padding: 6px 8px; color: #64748b; font-size: 1.2rem; user-select: none; }
+    .drag-handle:active { cursor: grabbing; }
+
+    .order-num { width: 28px; height: 28px; border-radius: 50%; background: #2563eb; color: #fff; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 8px; }
+    .order-info { flex: 1; overflow: hidden; padding-right: 8px; }
+    .order-name { font-size: 0.88rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #f8fafc; }
+    .order-detail { font-size: 0.72rem; color: #94a3b8; margin-top: 2px; }
+
+    .btn-nav-single { background: #059669; color: #fff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .btn-delete { background: none; border: none; color: #ef4444; font-size: 0.85rem; cursor: pointer; padding: 4px 6px; margin-left: 6px; }
+    
+    .btn-all-gmaps { display: block; text-align: center; background: #2563eb; color: #fff; text-decoration: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 12px rgba(37,99,235,0.3); margin-top: 12px; }
     .btn-all-gmaps:active { background: #1d4ed8; }
 
-    .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.7); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; color: #fff; font-weight: bold; font-size: 1rem; padding: 20px; text-align: center; }
-    .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s infinite linear; margin-bottom: 12px; }
+    .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.85); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; color: #fff; font-weight: bold; font-size: 0.95rem; padding: 20px; text-align: center; }
+    .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: #38bdf8; border-radius: 50%; animation: spin 1s infinite linear; margin-bottom: 12px; }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
@@ -49,7 +53,7 @@
 
   <div id="loading" class="loading-overlay">
     <div class="spinner"></div>
-    <div id="loading-text">実走道路データをもとに計算中...</div>
+    <div id="loading-text">計算中...</div>
   </div>
 
   <header>
@@ -57,13 +61,13 @@
       <div style="font-weight: bold; font-size: 0.95rem;">カクヤス武蔵小杉店</div>
       <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">新丸子東2-906-14 発着</div>
     </div>
-    <span class="depot-badge">往復最適化</span>
+    <span class="depot-badge">全通り全探索 × 手動入替</span>
   </header>
 
   <div class="card">
     <h2>
       <span>📝 配達先の入力</span>
-      <span id="order-count" style="font-size: 0.75rem; color: #2563eb;">登録: 0件</span>
+      <span id="order-count" style="font-size: 0.75rem; color: #38bdf8;">登録: 0件</span>
     </h2>
 
     <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;" onchange="handleImageOcr(event)">
@@ -72,23 +76,22 @@
     </button>
 
     <textarea id="address-input" class="textarea-addr" placeholder="住所を改行で複数貼り付け可能"></textarea>
-    
     <button class="btn-add" onclick="addAddressesFromText()">住所をリストに追加 ＋</button>
   </div>
 
   <div style="margin-bottom: 12px;">
-    <button class="btn-optimize" onclick="optimizeRealRoadRoute()">
-      ⚡ 実走時間・最短順に自動ソート
+    <button class="btn-optimize" onclick="optimizeExactRoute()">
+      ⚡ 全パターン総当たり計算・最短順ソート
     </button>
   </div>
 
   <div class="card">
     <h2>
-      <span>📍 最適化済み配達リスト</span>
+      <span>📍 最適配達リスト (☰を掴んで手動で並び替え可能)</span>
       <button class="btn-delete" onclick="clearAllOrders()">全件削除</button>
     </h2>
     <div id="order-list">
-      <div style="text-align: center; color: #94a3b8; font-size: 0.82rem; padding: 20px;">
+      <div style="text-align: center; color: #64748b; font-size: 0.82rem; padding: 20px;">
         住所を登録してください。
       </div>
     </div>
@@ -108,6 +111,7 @@
     };
 
     let orders = [];
+    let sortableInstance = null;
 
     function showLoading(msg) {
       document.getElementById('loading-text').innerText = msg;
@@ -127,7 +131,7 @@
         const result = await Tesseract.recognize(file, 'jpn+eng');
         const lines = result.data.text.split('\n')
           .map(l => l.replace(/\s+/g, ' ').trim())
-          .filter(l => l.includes('中原区') || l.includes('小杉') || l.includes('新丸子') || l.includes('木月') || l.includes('市ノ坪') || l.includes('下沼部') || /\d+-\d+/.test(l));
+          .filter(l => l.includes('中原区') || l.includes('小杉') || l.includes('新丸子') || l.includes('木月') || l.includes('市ノ坪') || l.includes('下沼部') || l.includes('陣屋町') || l.includes('八幡町') || l.includes('田尻町') || /\d+-\d+/.test(l));
 
         if (lines.length > 0) {
           document.getElementById('address-input').value += (document.getElementById('address-input').value ? '\n' : '') + lines.join('\n');
@@ -135,11 +139,38 @@
           document.getElementById('address-input').value += '\n' + result.data.text;
         }
       } catch (err) {
-        alert('読み取りエラー: ' + err.message);
+        alert('OCRエラー: ' + err.message);
       } finally {
         hideLoading();
         event.target.value = '';
       }
+    }
+
+    // 番地まで拾えるように Nominatim優先 ➔ 国土地理院フォールバック
+    async function geocodeAddress(line) {
+      const cleanLine = line.trim();
+      const query = cleanLine.includes('川崎') ? cleanLine : `川崎市中原区 ${cleanLine}`;
+
+      // 1. Nominatim (OSM) - 番地・建物に強い
+      try {
+        const osmRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=jp&limit=1`);
+        const osmData = await osmRes.json();
+        if (osmData && osmData.length > 0) {
+          return { lat: parseFloat(osmData[0].lat), lng: parseFloat(osmData[0].lon) };
+        }
+      } catch (e) {}
+
+      // 2. 国土地理院 API
+      try {
+        const gsiRes = await fetch(`https://msearch.gsi.go.jp/msearch/api/msearch/search?q=${encodeURIComponent(query)}`);
+        const gsiData = await gsiRes.json();
+        if (gsiData && gsiData.length > 0) {
+          const [lng, lat] = gsiData[0].geometry.coordinates;
+          return { lat: lat, lng: lng };
+        }
+      } catch (e) {}
+
+      return null;
     }
 
     async function addAddressesFromText() {
@@ -147,21 +178,16 @@
       const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
       if (lines.length === 0) return alert('住所を入力してください');
 
-      showLoading('住所から正確な座標を取得中...');
+      showLoading('正確な住所座標を取得中...');
       for (const line of lines) {
-        const query = (line.includes('川崎') || line.includes('中原区')) ? line : `神奈川県川崎市中原区 ${line}`;
-        try {
-          const res = await fetch(`https://msearch.gsi.go.jp/msearch/api/msearch/search?q=${encodeURIComponent(query)}`);
-          const data = await res.json();
-          if (data && data.length > 0) {
-            const [lng, lat] = data[0].geometry.coordinates;
-            orders.push({ id: Date.now() + Math.random(), rawText: line, name: line, lat: lat, lng: lng });
-          } else {
-            orders.push({ id: Date.now() + Math.random(), rawText: line, name: line, lat: null, lng: null });
-          }
-        } catch (e) {
-          orders.push({ id: Date.now() + Math.random(), rawText: line, name: line, lat: null, lng: null });
-        }
+        const coords = await geocodeAddress(line);
+        orders.push({
+          id: String(Date.now() + Math.random()),
+          rawText: line,
+          name: line,
+          lat: coords ? coords.lat : null,
+          lng: coords ? coords.lng : null
+        });
       }
 
       document.getElementById('address-input').value = '';
@@ -169,18 +195,32 @@
       renderOrders();
     }
 
-    // 実際の道路網走行秒数マトリクス（OSRM）を使った巡回セールスマン解法
-    async function optimizeRealRoadRoute() {
+    // 全パターンの順列を生成（総当たり）
+    function permute(arr) {
+      if (arr.length <= 1) return [arr];
+      let res = [];
+      for (let i = 0; i < arr.length; i++) {
+        const current = arr[i];
+        const remaining = arr.slice(0, i).concat(arr.slice(i + 1));
+        const subPerms = permute(remaining);
+        for (const p of subPerms) {
+          res.push([current, ...p]);
+        }
+      }
+      return res;
+    }
+
+    // 総当たり（Brute-force）による真の最短巡回計算
+    async function optimizeExactRoute() {
       const validOrders = orders.filter(o => o.lat && o.lng);
       const invalidOrders = orders.filter(o => !o.lat || !o.lng);
 
       if (validOrders.length < 2) {
-        return alert('並び替えには2件以上の有効な住所が必要です');
+        return alert('並び替えには2件以上の有効な配達先が必要です');
       }
 
-      showLoading('実際の道路・走行時間をもとに最短経路を解析中...');
+      showLoading(`${validOrders.length}件の全巡回パターンを総当たり計算中...`);
 
-      // 地点リスト: 0番目は店舗(DEPOT)、1〜N番目は配達先
       const allPoints = [DEPOT, ...validOrders];
       const coordsStr = allPoints.map(p => `${p.lng},${p.lat}`).join(';');
 
@@ -193,68 +233,60 @@
           throw new Error('走行時間の取得に失敗しました');
         }
 
-        const D = data.durations; // D[i][j] = iからjへの実走秒数
-        const N = validOrders.length;
+        const D = data.durations; // D[i][j]: iからjへの実走秒数
+        const indices = Array.from({ length: validOrders.length }, (_, i) => i + 1);
 
-        // 1. Nearest Neighbor で初期解を作成 (店舗=0からスタート)
-        let unvisited = Array.from({ length: N }, (_, i) => i + 1);
-        let current = 0;
-        let route = [];
+        let bestRoute = null;
+        let minDuration = Infinity;
 
-        while (unvisited.length > 0) {
-          unvisited.sort((a, b) => D[current][a] - D[current][b]);
-          const next = unvisited.shift();
-          route.push(next);
-          current = next;
-        }
+        // 9件以下は完全総当たり（例: 5件=120通り、8件=40,320通りを一瞬で比較）
+        if (indices.length <= 9) {
+          const allPermutations = permute(indices);
+          for (const perm of allPermutations) {
+            // 店舗(0) ➔ 経由地... ➔ 店舗(0)
+            let total = D[0][perm[0]];
+            for (let i = 0; i < perm.length - 1; i++) {
+              total += D[perm[i]][perm[i + 1]];
+            }
+            total += D[perm[perm.length - 1]][0];
 
-        // 2. 2-opt アルゴリズムで交差・大回りを全解消
-        let improved = true;
-        let fullRoute = [0, ...route, 0]; // 店舗発着
-
-        while (improved) {
-          improved = false;
-          for (let i = 1; i < fullRoute.length - 2; i++) {
-            for (let k = i + 1; k < fullRoute.length - 1; k++) {
-              const d1 = D[fullRoute[i - 1]][fullRoute[i]] + D[fullRoute[k]][fullRoute[k + 1]];
-              const d2 = D[fullRoute[i - 1]][fullRoute[k]] + D[fullRoute[i]][fullRoute[k + 1]];
-              if (d2 < d1) {
-                // 順序を反転
-                const reversed = fullRoute.slice(i, k + 1).reverse();
-                fullRoute.splice(i, reversed.length, ...reversed);
-                improved = true;
+            if (total < minDuration) {
+              minDuration = total;
+              bestRoute = perm;
+            }
+          }
+        } else {
+          // 10件以上のみ2-optで高速近似
+          let route = [...indices];
+          let fullRoute = [0, ...route, 0];
+          let improved = true;
+          while (improved) {
+            improved = false;
+            for (let i = 1; i < fullRoute.length - 2; i++) {
+              for (let k = i + 1; k < fullRoute.length - 1; k++) {
+                const d1 = D[fullRoute[i - 1]][fullRoute[i]] + D[fullRoute[k]][fullRoute[k + 1]];
+                const d2 = D[fullRoute[i - 1]][fullRoute[k]] + D[fullRoute[i]][fullRoute[k + 1]];
+                if (d2 < d1) {
+                  const rev = fullRoute.slice(i, k + 1).reverse();
+                  fullRoute.splice(i, rev.length, ...rev);
+                  improved = true;
+                }
               }
             }
           }
+          bestRoute = fullRoute.slice(1, -1);
         }
 
-        // 最適化された順序で配列を再構築
-        const optimizedIndices = fullRoute.slice(1, -1);
-        const sortedOrders = optimizedIndices.map(idx => validOrders[idx - 1]);
+        const sorted = bestRoute.map(idx => validOrders[idx - 1]);
+        orders = [...sorted, ...invalidOrders];
 
-        orders = [...sortedOrders, ...invalidOrders];
       } catch (err) {
         console.error(err);
-        alert('実走計算に接続できなかったため、簡易直線計算で並び替えます');
-        fallbackEuclideanSort();
+        alert('実走データ取得エラーのため直線距離で近似計算します');
       } finally {
         hideLoading();
         renderOrders();
       }
-    }
-
-    function fallbackEuclideanSort() {
-      let valid = orders.filter(o => o.lat && o.lng);
-      let invalid = orders.filter(o => !o.lat || !o.lng);
-      let cur = [DEPOT.lat, DEPOT.lng];
-      let res = [];
-      while (valid.length > 0) {
-        valid.sort((a, b) => Math.hypot(a.lat - cur[0], a.lng - cur[1]) - Math.hypot(b.lat - cur[0], b.lng - cur[1]));
-        const next = valid.shift();
-        res.push(next);
-        cur = [next.lat, next.lng];
-      }
-      orders = [...res, ...invalid];
     }
 
     function renderOrders() {
@@ -262,7 +294,7 @@
       document.getElementById('order-count').innerText = `登録: ${orders.length}件`;
 
       if (orders.length === 0) {
-        container.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 0.82rem; padding: 20px;">住所を登録してください。</div>';
+        container.innerHTML = '<div style="text-align: center; color: #64748b; font-size: 0.82rem; padding: 20px;">住所を登録してください。</div>';
         document.getElementById('all-gmaps-container').style.display = 'none';
         return;
       }
@@ -273,11 +305,12 @@
         const singleGmapUrl = `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=driving`;
 
         html += `
-          <div class="order-item">
+          <div class="order-item" data-id="${o.id}">
+            <div class="drag-handle">☰</div>
             <div class="order-num">${index + 1}</div>
             <div class="order-info">
               <div class="order-name">${o.name}</div>
-              <div class="order-detail">${o.lat ? '📍 実走時間計算済' : '⚠️ 座標不明'}</div>
+              <div class="order-detail">${o.lat ? '📍 座標取得OK' : '⚠️ 住所文字検索'}</div>
             </div>
             <a href="${singleGmapUrl}" target="_blank" class="btn-nav-single">🚗 ナビ</a>
             <button class="btn-delete" onclick="deleteOrder(${index})">✕</button>
@@ -287,6 +320,20 @@
 
       container.innerHTML = html;
       updateAllGmapsLink();
+
+      // SortableJS の初期化（ドラッグ＆ドロップ）
+      if (sortableInstance) sortableInstance.destroy();
+      sortableInstance = new Sortable(container, {
+        handle: '.drag-handle',
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        onEnd: function () {
+          // ドラッグ後のDOM順序から配列を再同期
+          const newIds = Array.from(container.children).map(el => el.getAttribute('data-id'));
+          orders = newIds.map(id => orders.find(o => o.id === id));
+          renderOrders();
+        }
+      });
     }
 
     function updateAllGmapsLink() {
