@@ -164,7 +164,7 @@
             orders.push({
               id: Date.now() + Math.random(),
               rawText: line,
-              name: data[0].properties.title || line,
+              name: line,
               lat: lat,
               lng: lng
             });
@@ -213,7 +213,6 @@
 
       hideLoading();
       renderOrders();
-      updateAllGmapsLink();
     }
 
     function renderOrders() {
@@ -228,15 +227,16 @@
 
       let html = '';
       orders.forEach((o, index) => {
-        const query = (o.lat && o.lng) ? `${o.lat},${o.lng}` : encodeURIComponent(o.rawText);
-        const singleGmapUrl = `https://www.google.com/maps/dir/?api=1&destination=${query}&travelmode=driving`;
+        // 単独ナビ用の宛先指定
+        const dest = (o.lat && o.lng) ? `${o.lat},${o.lng}` : encodeURIComponent(o.rawText);
+        const singleGmapUrl = `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=driving`;
 
         html += `
           <div class="order-item">
             <div class="order-num">${index + 1}</div>
             <div class="order-info">
               <div class="order-name">${o.name}</div>
-              <div class="order-detail">${o.lat ? '📍 位置特定済み' : '⚠️ 住所文字検索'}</div>
+              <div class="order-detail">${o.lat ? '📍 座標OK' : '⚠️ 文字検索'}</div>
             </div>
             <a href="${singleGmapUrl}" target="_blank" class="btn-nav-single">🚗 ナビ</a>
             <button class="btn-delete" onclick="deleteOrder(${index})">✕</button>
@@ -256,8 +256,17 @@
 
       const origin = `${DEPOT.lat},${DEPOT.lng}`;
       const destination = origin;
-      const waypoints = orders.map(o => (o.lat && o.lng) ? `${o.lat},${o.lng}` : encodeURIComponent(o.rawText)).join('|');
-      const allUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${encodeURIComponent(waypoints)}&travelmode=driving`;
+
+      // 経由地（二重エンコードを防ぐため、数字座標または1回のみのURIエンコード）
+      const waypoints = orders.map(o => {
+        if (o.lat && o.lng) {
+          return `${o.lat},${o.lng}`;
+        }
+        return encodeURIComponent(o.rawText);
+      }).join('|');
+
+      // パラメータ全体ではなく、そのままクエリに連結
+      const allUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoints}&travelmode=driving`;
 
       const btn = document.getElementById('btn-all-gmaps');
       btn.href = allUrl;
