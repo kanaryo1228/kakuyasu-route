@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>カクヤス武蔵小杉 配達ナビオーガナイザー</title>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <title>カクヤス武蔵小杉 配達オーガナイザー</title>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -16,52 +15,43 @@
     .card { background: #1e293b; border-radius: 12px; padding: 14px; margin-bottom: 12px; border: 1px solid #334155; }
     h2 { font-size: 0.88rem; color: #94a3b8; margin-bottom: 8px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
     
-    .btn-camera { width: 100%; background: #0284c7; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 0.95rem; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; }
-    .btn-camera:active { background: #0369a1; }
-    
-    .textarea-addr { width: 100%; background: #0f172a; color: #f8fafc; border: 1.5px solid #334155; border-radius: 8px; padding: 10px; font-size: 0.88rem; font-family: inherit; resize: vertical; min-height: 80px; margin-top: 8px; }
+    .textarea-addr { width: 100%; background: #0f172a; color: #f8fafc; border: 1.5px solid #334155; border-radius: 8px; padding: 10px; font-size: 0.88rem; font-family: inherit; resize: vertical; min-height: 90px; margin-top: 4px; }
     .textarea-addr:focus { outline: none; border-color: #38bdf8; }
 
     .btn-add { width: 100%; background: #334155; color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 0.88rem; cursor: pointer; margin-top: 6px; }
     
-    .btn-optimize { width: 100%; background: #10b981; color: #fff; border: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1.05rem; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(16,185,129,0.25); }
-    .btn-optimize:active { background: #059669; }
+    .sort-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .btn-sort { color: #fff; border: none; padding: 12px 6px; border-radius: 10px; font-weight: bold; font-size: 0.9rem; cursor: pointer; text-align: center; }
+    .btn-cw { background: #10b981; box-shadow: 0 3px 8px rgba(16,185,129,0.3); }
+    .btn-ccw { background: #0284c7; box-shadow: 0 3px 8px rgba(2,132,199,0.3); }
+    .btn-sort:active { filter: brightness(0.85); }
 
-    .order-item { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; touch-action: manipulation; }
+    .order-item { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
     .order-item.sortable-ghost { opacity: 0.3; background: #334155; }
     
-    .drag-handle { cursor: grab; padding: 6px 8px; color: #64748b; font-size: 1.2rem; user-select: none; }
-    .drag-handle:active { cursor: grabbing; }
-
+    .drag-handle { cursor: grab; padding: 6px 10px; color: #64748b; font-size: 1.3rem; user-select: none; }
     .order-num { width: 28px; height: 28px; border-radius: 50%; background: #2563eb; color: #fff; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 8px; }
-    .order-info { flex: 1; overflow: hidden; padding-right: 8px; }
+    .order-info { flex: 1; overflow: hidden; }
     .order-name { font-size: 0.88rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #f8fafc; }
     .order-detail { font-size: 0.72rem; color: #94a3b8; margin-top: 2px; }
 
-    .btn-nav-single { background: #059669; color: #fff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .btn-nav-single { background: #059669; color: #fff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: bold; flex-shrink: 0; }
     .btn-delete { background: none; border: none; color: #ef4444; font-size: 0.85rem; cursor: pointer; padding: 4px 6px; margin-left: 6px; }
     
     .btn-all-gmaps { display: block; text-align: center; background: #2563eb; color: #fff; text-decoration: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 12px rgba(37,99,235,0.3); margin-top: 12px; }
     .btn-all-gmaps:active { background: #1d4ed8; }
 
-    .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.85); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; color: #fff; font-weight: bold; font-size: 0.95rem; padding: 20px; text-align: center; }
-    .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: #38bdf8; border-radius: 50%; animation: spin 1s infinite linear; margin-bottom: 12px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .route-preview { font-size: 0.78rem; color: #38bdf8; background: #0f172a; padding: 8px 12px; border-radius: 6px; margin-top: 8px; border: 1px solid #334155; line-height: 1.5; }
   </style>
 </head>
 <body>
-
-  <div id="loading" class="loading-overlay">
-    <div class="spinner"></div>
-    <div id="loading-text">計算中...</div>
-  </div>
 
   <header>
     <div>
       <div style="font-weight: bold; font-size: 0.95rem;">カクヤス武蔵小杉店</div>
       <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">新丸子東2-906-14 発着</div>
     </div>
-    <span class="depot-badge">全通り全探索 × 手動入替</span>
+    <span class="depot-badge">一筆書きエリア巡回</span>
   </header>
 
   <div class="card">
@@ -70,27 +60,26 @@
       <span id="order-count" style="font-size: 0.75rem; color: #38bdf8;">登録: 0件</span>
     </h2>
 
-    <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;" onchange="handleImageOcr(event)">
-    <button class="btn-camera" onclick="document.getElementById('camera-input').click()">
-      📷 伝票をカメラ撮影 / 写真から文字抽出
-    </button>
-
     <textarea id="address-input" class="textarea-addr" placeholder="住所を改行で複数貼り付け可能"></textarea>
     <button class="btn-add" onclick="addAddressesFromText()">住所をリストに追加 ＋</button>
   </div>
 
-  <div style="margin-bottom: 12px;">
-    <button class="btn-optimize" onclick="optimizeExactRoute()">
-      ⚡ 全パターン総当たり計算・最短順ソート
+  <div class="sort-actions">
+    <button class="btn-sort btn-cw" onclick="sortByAngle(false)">
+      🔄 時計回りで一筆書き<br><span style="font-size:0.7rem; font-weight:normal;">北(丸子) ➔ 南(平間・元住吉)</span>
+    </button>
+    <button class="btn-sort btn-ccw" onclick="sortByAngle(true)">
+      🔄 反時計回りで一筆書き<br><span style="font-size:0.7rem; font-weight:normal;">南(平間・元住吉) ➔ 北(丸子)</span>
     </button>
   </div>
 
   <div class="card">
     <h2>
-      <span>📍 最適配達リスト (☰を掴んで手動で並び替え可能)</span>
+      <span>📍 配達順リスト (☰を掴んで指で上下入替可能)</span>
       <button class="btn-delete" onclick="clearAllOrders()">全件削除</button>
     </h2>
-    <div id="order-list">
+    <div id="route-summary" class="route-preview" style="display: none;"></div>
+    <div id="order-list" style="margin-top: 8px;">
       <div style="text-align: center; color: #64748b; font-size: 0.82rem; padding: 20px;">
         住所を登録してください。
       </div>
@@ -110,183 +99,96 @@
       lng: 139.662047
     };
 
+    // 中原区主要エリアの基準座標（APIが代表点しか返せなくても即座に正確な方角・位置を特定）
+    const LANDMARKS = [
+      { key: "上丸子八幡町", lat: 35.5855, lng: 139.6675 },
+      { key: "丸子通", lat: 35.5825, lng: 139.6650 },
+      { key: "小杉御殿町", lat: 35.5825, lng: 139.6490 },
+      { key: "小杉陣屋町", lat: 35.5865, lng: 139.6525 },
+      { key: "新丸子東", lat: 35.5775, lng: 139.6635 },
+      { key: "小杉町", lat: 35.5750, lng: 139.6560 },
+      { key: "今井南町", lat: 35.5700, lng: 139.6520 },
+      { key: "木月住吉町", lat: 35.5660, lng: 139.6535 },
+      { key: "木月", lat: 35.5630, lng: 139.6500 },
+      { key: "西加瀬", lat: 35.5615, lng: 139.6590 },
+      { key: "苅宿", lat: 35.5605, lng: 139.6535 },
+      { key: "下沼部", lat: 35.5680, lng: 139.6700 },
+      { key: "市ノ坪", lat: 35.5665, lng: 139.6570 },
+      { key: "田尻町", lat: 35.5585, lng: 139.6770 },
+      { key: "北谷町", lat: 35.5620, lng: 139.6730 },
+      { key: "上平間", lat: 35.5600, lng: 139.6710 }
+    ];
+
     let orders = [];
     let sortableInstance = null;
-
-    function showLoading(msg) {
-      document.getElementById('loading-text').innerText = msg;
-      document.getElementById('loading').style.display = 'flex';
-    }
-
-    function hideLoading() {
-      document.getElementById('loading').style.display = 'none';
-    }
-
-    async function handleImageOcr(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      showLoading('伝票の文字を解析中...');
-      try {
-        const result = await Tesseract.recognize(file, 'jpn+eng');
-        const lines = result.data.text.split('\n')
-          .map(l => l.replace(/\s+/g, ' ').trim())
-          .filter(l => l.includes('中原区') || l.includes('小杉') || l.includes('新丸子') || l.includes('木月') || l.includes('市ノ坪') || l.includes('下沼部') || l.includes('陣屋町') || l.includes('八幡町') || l.includes('田尻町') || /\d+-\d+/.test(l));
-
-        if (lines.length > 0) {
-          document.getElementById('address-input').value += (document.getElementById('address-input').value ? '\n' : '') + lines.join('\n');
-        } else {
-          document.getElementById('address-input').value += '\n' + result.data.text;
-        }
-      } catch (err) {
-        alert('OCRエラー: ' + err.message);
-      } finally {
-        hideLoading();
-        event.target.value = '';
-      }
-    }
-
-    // 番地まで拾えるように Nominatim優先 ➔ 国土地理院フォールバック
-    async function geocodeAddress(line) {
-      const cleanLine = line.trim();
-      const query = cleanLine.includes('川崎') ? cleanLine : `川崎市中原区 ${cleanLine}`;
-
-      // 1. Nominatim (OSM) - 番地・建物に強い
-      try {
-        const osmRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=jp&limit=1`);
-        const osmData = await osmRes.json();
-        if (osmData && osmData.length > 0) {
-          return { lat: parseFloat(osmData[0].lat), lng: parseFloat(osmData[0].lon) };
-        }
-      } catch (e) {}
-
-      // 2. 国土地理院 API
-      try {
-        const gsiRes = await fetch(`https://msearch.gsi.go.jp/msearch/api/msearch/search?q=${encodeURIComponent(query)}`);
-        const gsiData = await gsiRes.json();
-        if (gsiData && gsiData.length > 0) {
-          const [lng, lat] = gsiData[0].geometry.coordinates;
-          return { lat: lat, lng: lng };
-        }
-      } catch (e) {}
-
-      return null;
-    }
 
     async function addAddressesFromText() {
       const text = document.getElementById('address-input').value;
       const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
       if (lines.length === 0) return alert('住所を入力してください');
 
-      showLoading('正確な住所座標を取得中...');
       for (const line of lines) {
-        const coords = await geocodeAddress(line);
+        let lat = null, lng = null;
+
+        // 1. ローカル辞書判定（ミリ秒で正確なブロックを特定）
+        const hit = LANDMARKS.find(lm => line.includes(lm.key));
+        if (hit) {
+          lat = hit.lat;
+          lng = hit.lng;
+        } else {
+          // 2. 国土地理院フォールバック
+          try {
+            const query = line.includes('川崎') ? line : `神奈川県川崎市中原区 ${line}`;
+            const res = await fetch(`https://msearch.gsi.go.jp/msearch/api/msearch/search?q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            if (data && data.length > 0) {
+              lng = data[0].geometry.coordinates[0];
+              lat = data[0].geometry.coordinates[1];
+            }
+          } catch (e) {}
+        }
+
         orders.push({
           id: String(Date.now() + Math.random()),
-          rawText: line,
           name: line,
-          lat: coords ? coords.lat : null,
-          lng: coords ? coords.lng : null
+          lat: lat,
+          lng: lng
         });
       }
 
       document.getElementById('address-input').value = '';
-      hideLoading();
       renderOrders();
+      // 追加直後に自動で時計回りソート
+      sortByAngle(false);
     }
 
-    // 全パターンの順列を生成（総当たり）
-    function permute(arr) {
-      if (arr.length <= 1) return [arr];
-      let res = [];
-      for (let i = 0; i < arr.length; i++) {
-        const current = arr[i];
-        const remaining = arr.slice(0, i).concat(arr.slice(i + 1));
-        const subPerms = permute(remaining);
-        for (const p of subPerms) {
-          res.push([current, ...p]);
-        }
-      }
-      return res;
-    }
+    // カクヤス店舗を中心とした極座標（方位角）スイープソート（一筆書き保証）
+    function sortByAngle(counterClockwise = false) {
+      const valid = orders.filter(o => o.lat && o.lng);
+      const invalid = orders.filter(o => !o.lat || !o.lng);
 
-    // 総当たり（Brute-force）による真の最短巡回計算
-    async function optimizeExactRoute() {
-      const validOrders = orders.filter(o => o.lat && o.lng);
-      const invalidOrders = orders.filter(o => !o.lat || !o.lng);
+      if (valid.length < 2) return;
 
-      if (validOrders.length < 2) {
-        return alert('並び替えには2件以上の有効な配達先が必要です');
-      }
+      valid.forEach(o => {
+        // 店舗からの相対ベクトル
+        const dy = o.lat - DEPOT.lat;
+        const dx = (o.lng - DEPOT.lng) * Math.cos(DEPOT.lat * Math.PI / 180);
+        
+        // 角度（ラジアン: -PI 〜 PI）
+        let angle = Math.atan2(dx, dy); // 北が0、時計回りがプラス
+        if (angle < 0) angle += 2 * Math.PI;
 
-      showLoading(`${validOrders.length}件の全巡回パターンを総当たり計算中...`);
+        o.angle = angle;
+        o.dist = Math.hypot(dx, dy);
+      });
 
-      const allPoints = [DEPOT, ...validOrders];
-      const coordsStr = allPoints.map(p => `${p.lng},${p.lat}`).join(';');
+      // 角度順に並び替え
+      valid.sort((a, b) => {
+        return counterClockwise ? (b.angle - a.angle) : (a.angle - b.angle);
+      });
 
-      try {
-        const osrmUrl = `https://router.project-osrm.org/table/v1/driving/${coordsStr}?annotations=duration`;
-        const res = await fetch(osrmUrl);
-        const data = await res.json();
-
-        if (data.code !== 'Ok' || !data.durations) {
-          throw new Error('走行時間の取得に失敗しました');
-        }
-
-        const D = data.durations; // D[i][j]: iからjへの実走秒数
-        const indices = Array.from({ length: validOrders.length }, (_, i) => i + 1);
-
-        let bestRoute = null;
-        let minDuration = Infinity;
-
-        // 9件以下は完全総当たり（例: 5件=120通り、8件=40,320通りを一瞬で比較）
-        if (indices.length <= 9) {
-          const allPermutations = permute(indices);
-          for (const perm of allPermutations) {
-            // 店舗(0) ➔ 経由地... ➔ 店舗(0)
-            let total = D[0][perm[0]];
-            for (let i = 0; i < perm.length - 1; i++) {
-              total += D[perm[i]][perm[i + 1]];
-            }
-            total += D[perm[perm.length - 1]][0];
-
-            if (total < minDuration) {
-              minDuration = total;
-              bestRoute = perm;
-            }
-          }
-        } else {
-          // 10件以上のみ2-optで高速近似
-          let route = [...indices];
-          let fullRoute = [0, ...route, 0];
-          let improved = true;
-          while (improved) {
-            improved = false;
-            for (let i = 1; i < fullRoute.length - 2; i++) {
-              for (let k = i + 1; k < fullRoute.length - 1; k++) {
-                const d1 = D[fullRoute[i - 1]][fullRoute[i]] + D[fullRoute[k]][fullRoute[k + 1]];
-                const d2 = D[fullRoute[i - 1]][fullRoute[k]] + D[fullRoute[i]][fullRoute[k + 1]];
-                if (d2 < d1) {
-                  const rev = fullRoute.slice(i, k + 1).reverse();
-                  fullRoute.splice(i, rev.length, ...rev);
-                  improved = true;
-                }
-              }
-            }
-          }
-          bestRoute = fullRoute.slice(1, -1);
-        }
-
-        const sorted = bestRoute.map(idx => validOrders[idx - 1]);
-        orders = [...sorted, ...invalidOrders];
-
-      } catch (err) {
-        console.error(err);
-        alert('実走データ取得エラーのため直線距離で近似計算します');
-      } finally {
-        hideLoading();
-        renderOrders();
-      }
+      orders = [...valid, ...invalid];
+      renderOrders();
     }
 
     function renderOrders() {
@@ -296,12 +198,13 @@
       if (orders.length === 0) {
         container.innerHTML = '<div style="text-align: center; color: #64748b; font-size: 0.82rem; padding: 20px;">住所を登録してください。</div>';
         document.getElementById('all-gmaps-container').style.display = 'none';
+        document.getElementById('route-summary').style.display = 'none';
         return;
       }
 
       let html = '';
       orders.forEach((o, index) => {
-        const dest = (o.lat && o.lng) ? `${o.lat},${o.lng}` : encodeURIComponent(o.rawText);
+        const dest = encodeURIComponent(o.name.includes('川崎') ? o.name : `川崎市中原区 ${o.name}`);
         const singleGmapUrl = `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=driving`;
 
         html += `
@@ -310,7 +213,7 @@
             <div class="order-num">${index + 1}</div>
             <div class="order-info">
               <div class="order-name">${o.name}</div>
-              <div class="order-detail">${o.lat ? '📍 座標取得OK' : '⚠️ 住所文字検索'}</div>
+              <div class="order-detail">${o.lat ? '📍 エリア特定済' : '⚠️ 住所検索'}</div>
             </div>
             <a href="${singleGmapUrl}" target="_blank" class="btn-nav-single">🚗 ナビ</a>
             <button class="btn-delete" onclick="deleteOrder(${index})">✕</button>
@@ -319,16 +222,22 @@
       });
 
       container.innerHTML = html;
+
+      // ルート巡回プレビュー表示
+      const summary = document.getElementById('route-summary');
+      const routeFlow = ['カクヤス武蔵小杉', ...orders.map(o => o.name.replace(/川崎市中原区/, '')), 'カクヤス武蔵小杉'];
+      summary.innerHTML = `🏁 巡回順: <b>${routeFlow.join(' ➔ ')}</b>`;
+      summary.style.display = 'block';
+
       updateAllGmapsLink();
 
-      // SortableJS の初期化（ドラッグ＆ドロップ）
+      // 指での手動ドラッグ並び替え
       if (sortableInstance) sortableInstance.destroy();
       sortableInstance = new Sortable(container, {
         handle: '.drag-handle',
         animation: 150,
         ghostClass: 'sortable-ghost',
         onEnd: function () {
-          // ドラッグ後のDOM順序から配列を再同期
           const newIds = Array.from(container.children).map(el => el.getAttribute('data-id'));
           orders = newIds.map(id => orders.find(o => o.id === id));
           renderOrders();
@@ -342,9 +251,14 @@
         return;
       }
 
-      const origin = `${DEPOT.lat},${DEPOT.lng}`;
+      const origin = encodeURIComponent("神奈川県川崎市中原区新丸子東2-906-14");
       const destination = origin;
-      const waypoints = orders.map(o => (o.lat && o.lng) ? `${o.lat},${o.lng}` : encodeURIComponent(o.rawText)).join('|');
+
+      // 経由地はGoogleマップが確実に認識する正確な住所表記で渡す
+      const waypoints = orders.map(o => {
+        const full = o.name.includes('川崎') ? o.name : `神奈川県川崎市中原区 ${o.name}`;
+        return encodeURIComponent(full);
+      }).join('|');
 
       const allUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoints}&travelmode=driving`;
 
