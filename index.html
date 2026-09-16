@@ -49,15 +49,15 @@
 
   <div id="loading" class="loading-overlay">
     <div class="spinner"></div>
-    <div id="loading-text">処理中...</div>
+    <div id="loading-text">実走道路データをもとに計算中...</div>
   </div>
 
   <header>
     <div>
       <div style="font-weight: bold; font-size: 0.95rem;">カクヤス武蔵小杉店</div>
-      <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">新丸子東2-906-14 拠点固定</div>
+      <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">新丸子東2-906-14 発着</div>
     </div>
-    <span class="depot-badge">発着: 往復</span>
+    <span class="depot-badge">往復最適化</span>
   </header>
 
   <div class="card">
@@ -71,32 +71,32 @@
       📷 伝票をカメラ撮影 / 写真から文字抽出
     </button>
 
-    <textarea id="address-input" class="textarea-addr" placeholder="住所を改行で複数貼り付け可能&#13;&#10;例:&#13;&#10;川崎市中原区小杉町3-1&#13;&#10;新丸子東3-1200&#13;&#10;木月2-10"></textarea>
+    <textarea id="address-input" class="textarea-addr" placeholder="住所を改行で複数貼り付け可能"></textarea>
     
     <button class="btn-add" onclick="addAddressesFromText()">住所をリストに追加 ＋</button>
   </div>
 
   <div style="margin-bottom: 12px;">
-    <button class="btn-optimize" onclick="optimizeRoute()">
-      ⚡ 武蔵小杉店発着・最短順に並び替え
+    <button class="btn-optimize" onclick="optimizeRealRoadRoute()">
+      ⚡ 実走時間・最短順に自動ソート
     </button>
   </div>
 
   <div class="card">
     <h2>
-      <span>📍 最短配達順序</span>
+      <span>📍 最適化済み配達リスト</span>
       <button class="btn-delete" onclick="clearAllOrders()">全件削除</button>
     </h2>
     <div id="order-list">
       <div style="text-align: center; color: #94a3b8; font-size: 0.82rem; padding: 20px;">
-        伝票を撮影するか、住所を貼り付けてください。
+        住所を登録してください。
       </div>
     </div>
   </div>
 
   <div id="all-gmaps-container" style="display: none; margin-bottom: 24px;">
     <a id="btn-all-gmaps" class="btn-all-gmaps" href="#" target="_blank">
-      🗺️ Googleマップで全ルートを開く (全経由地セット)
+      🗺️ Googleマップで全ルートを開く
     </a>
   </div>
 
@@ -104,8 +104,7 @@
     const DEPOT = {
       name: "カクヤス 武蔵小杉店",
       lat: 35.577328,
-      lng: 139.662047,
-      address: "神奈川県川崎市中原区新丸子東2-906-14"
+      lng: 139.662047
     };
 
     let orders = [];
@@ -123,25 +122,20 @@
       const file = event.target.files[0];
       if (!file) return;
 
-      showLoading('伝票の文字を読み取り中...');
+      showLoading('伝票の文字を解析中...');
       try {
         const result = await Tesseract.recognize(file, 'jpn+eng');
-        const text = result.data.text;
-
-        const lines = text.split('\n')
+        const lines = result.data.text.split('\n')
           .map(l => l.replace(/\s+/g, ' ').trim())
-          .filter(l => l.includes('中原区') || l.includes('新丸子') || l.includes('小杉') || l.includes('木月') || l.includes('平間') || l.includes('市ノ坪') || l.includes('町') || l.includes('丁目') || /\d+-\d+/.test(l));
+          .filter(l => l.includes('中原区') || l.includes('小杉') || l.includes('新丸子') || l.includes('木月') || l.includes('市ノ坪') || l.includes('下沼部') || /\d+-\d+/.test(l));
 
         if (lines.length > 0) {
-          const area = document.getElementById('address-input');
-          area.value += (area.value ? '\n' : '') + lines.join('\n');
-          alert(`${lines.length} 件の住所候補を読み取りました。内容を確認して「リストに追加」を押してください。`);
+          document.getElementById('address-input').value += (document.getElementById('address-input').value ? '\n' : '') + lines.join('\n');
         } else {
-          document.getElementById('address-input').value += '\n' + text;
-          alert('住所を自動判別できませんでした。読み取った全文を入力欄に入れたので、不要な文字を消して追加してください。');
+          document.getElementById('address-input').value += '\n' + result.data.text;
         }
       } catch (err) {
-        alert('文字読み取りに失敗しました: ' + err.message);
+        alert('読み取りエラー: ' + err.message);
       } finally {
         hideLoading();
         event.target.value = '';
@@ -153,7 +147,7 @@
       const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
       if (lines.length === 0) return alert('住所を入力してください');
 
-      showLoading('住所の座標を取得中...');
+      showLoading('住所から正確な座標を取得中...');
       for (const line of lines) {
         const query = (line.includes('川崎') || line.includes('中原区')) ? line : `神奈川県川崎市中原区 ${line}`;
         try {
@@ -161,21 +155,9 @@
           const data = await res.json();
           if (data && data.length > 0) {
             const [lng, lat] = data[0].geometry.coordinates;
-            orders.push({
-              id: Date.now() + Math.random(),
-              rawText: line,
-              name: line,
-              lat: lat,
-              lng: lng
-            });
+            orders.push({ id: Date.now() + Math.random(), rawText: line, name: line, lat: lat, lng: lng });
           } else {
-            orders.push({
-              id: Date.now() + Math.random(),
-              rawText: line,
-              name: line,
-              lat: null,
-              lng: null
-            });
+            orders.push({ id: Date.now() + Math.random(), rawText: line, name: line, lat: null, lng: null });
           }
         } catch (e) {
           orders.push({ id: Date.now() + Math.random(), rawText: line, name: line, lat: null, lng: null });
@@ -187,32 +169,92 @@
       renderOrders();
     }
 
-    function optimizeRoute() {
-      if (orders.length === 0) return alert('並び替える配達先がありません');
+    // 実際の道路網走行秒数マトリクス（OSRM）を使った巡回セールスマン解法
+    async function optimizeRealRoadRoute() {
+      const validOrders = orders.filter(o => o.lat && o.lng);
+      const invalidOrders = orders.filter(o => !o.lat || !o.lng);
 
-      showLoading('武蔵小杉店発着の最短順を計算中...');
-
-      let validOrders = orders.filter(o => o.lat && o.lng);
-      let noCoordOrders = orders.filter(o => !o.lat || !o.lng);
-
-      let currentPos = [DEPOT.lat, DEPOT.lng];
-      let sorted = [];
-
-      while (validOrders.length > 0) {
-        validOrders.sort((a, b) => {
-          const distA = Math.hypot(a.lat - currentPos[0], a.lng - currentPos[1]);
-          const distB = Math.hypot(b.lat - currentPos[0], b.lng - currentPos[1]);
-          return distA - distB;
-        });
-        const next = validOrders.shift();
-        sorted.push(next);
-        currentPos = [next.lat, next.lng];
+      if (validOrders.length < 2) {
+        return alert('並び替えには2件以上の有効な住所が必要です');
       }
 
-      orders = [...sorted, ...noCoordOrders];
+      showLoading('実際の道路・走行時間をもとに最短経路を解析中...');
 
-      hideLoading();
-      renderOrders();
+      // 地点リスト: 0番目は店舗(DEPOT)、1〜N番目は配達先
+      const allPoints = [DEPOT, ...validOrders];
+      const coordsStr = allPoints.map(p => `${p.lng},${p.lat}`).join(';');
+
+      try {
+        const osrmUrl = `https://router.project-osrm.org/table/v1/driving/${coordsStr}?annotations=duration`;
+        const res = await fetch(osrmUrl);
+        const data = await res.json();
+
+        if (data.code !== 'Ok' || !data.durations) {
+          throw new Error('走行時間の取得に失敗しました');
+        }
+
+        const D = data.durations; // D[i][j] = iからjへの実走秒数
+        const N = validOrders.length;
+
+        // 1. Nearest Neighbor で初期解を作成 (店舗=0からスタート)
+        let unvisited = Array.from({ length: N }, (_, i) => i + 1);
+        let current = 0;
+        let route = [];
+
+        while (unvisited.length > 0) {
+          unvisited.sort((a, b) => D[current][a] - D[current][b]);
+          const next = unvisited.shift();
+          route.push(next);
+          current = next;
+        }
+
+        // 2. 2-opt アルゴリズムで交差・大回りを全解消
+        let improved = true;
+        let fullRoute = [0, ...route, 0]; // 店舗発着
+
+        while (improved) {
+          improved = false;
+          for (let i = 1; i < fullRoute.length - 2; i++) {
+            for (let k = i + 1; k < fullRoute.length - 1; k++) {
+              const d1 = D[fullRoute[i - 1]][fullRoute[i]] + D[fullRoute[k]][fullRoute[k + 1]];
+              const d2 = D[fullRoute[i - 1]][fullRoute[k]] + D[fullRoute[i]][fullRoute[k + 1]];
+              if (d2 < d1) {
+                // 順序を反転
+                const reversed = fullRoute.slice(i, k + 1).reverse();
+                fullRoute.splice(i, reversed.length, ...reversed);
+                improved = true;
+              }
+            }
+          }
+        }
+
+        // 最適化された順序で配列を再構築
+        const optimizedIndices = fullRoute.slice(1, -1);
+        const sortedOrders = optimizedIndices.map(idx => validOrders[idx - 1]);
+
+        orders = [...sortedOrders, ...invalidOrders];
+      } catch (err) {
+        console.error(err);
+        alert('実走計算に接続できなかったため、簡易直線計算で並び替えます');
+        fallbackEuclideanSort();
+      } finally {
+        hideLoading();
+        renderOrders();
+      }
+    }
+
+    function fallbackEuclideanSort() {
+      let valid = orders.filter(o => o.lat && o.lng);
+      let invalid = orders.filter(o => !o.lat || !o.lng);
+      let cur = [DEPOT.lat, DEPOT.lng];
+      let res = [];
+      while (valid.length > 0) {
+        valid.sort((a, b) => Math.hypot(a.lat - cur[0], a.lng - cur[1]) - Math.hypot(b.lat - cur[0], b.lng - cur[1]));
+        const next = valid.shift();
+        res.push(next);
+        cur = [next.lat, next.lng];
+      }
+      orders = [...res, ...invalid];
     }
 
     function renderOrders() {
@@ -220,14 +262,13 @@
       document.getElementById('order-count').innerText = `登録: ${orders.length}件`;
 
       if (orders.length === 0) {
-        container.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 0.82rem; padding: 20px;">伝票を撮影するか、住所を貼り付けてください。</div>';
+        container.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 0.82rem; padding: 20px;">住所を登録してください。</div>';
         document.getElementById('all-gmaps-container').style.display = 'none';
         return;
       }
 
       let html = '';
       orders.forEach((o, index) => {
-        // 単独ナビ用の宛先指定
         const dest = (o.lat && o.lng) ? `${o.lat},${o.lng}` : encodeURIComponent(o.rawText);
         const singleGmapUrl = `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=driving`;
 
@@ -236,7 +277,7 @@
             <div class="order-num">${index + 1}</div>
             <div class="order-info">
               <div class="order-name">${o.name}</div>
-              <div class="order-detail">${o.lat ? '📍 座標OK' : '⚠️ 文字検索'}</div>
+              <div class="order-detail">${o.lat ? '📍 実走時間計算済' : '⚠️ 座標不明'}</div>
             </div>
             <a href="${singleGmapUrl}" target="_blank" class="btn-nav-single">🚗 ナビ</a>
             <button class="btn-delete" onclick="deleteOrder(${index})">✕</button>
@@ -256,16 +297,8 @@
 
       const origin = `${DEPOT.lat},${DEPOT.lng}`;
       const destination = origin;
+      const waypoints = orders.map(o => (o.lat && o.lng) ? `${o.lat},${o.lng}` : encodeURIComponent(o.rawText)).join('|');
 
-      // 経由地（二重エンコードを防ぐため、数字座標または1回のみのURIエンコード）
-      const waypoints = orders.map(o => {
-        if (o.lat && o.lng) {
-          return `${o.lat},${o.lng}`;
-        }
-        return encodeURIComponent(o.rawText);
-      }).join('|');
-
-      // パラメータ全体ではなく、そのままクエリに連結
       const allUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoints}&travelmode=driving`;
 
       const btn = document.getElementById('btn-all-gmaps');
@@ -280,7 +313,7 @@
 
     function clearAllOrders() {
       if (orders.length === 0) return;
-      if (confirm('登録された配達先をすべて消去しますか？')) {
+      if (confirm('全件削除しますか？')) {
         orders = [];
         renderOrders();
       }
