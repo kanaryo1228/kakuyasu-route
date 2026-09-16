@@ -3,45 +3,58 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>カクヤス武蔵小杉 配達オーガナイザー</title>
+  <title>カクヤス武蔵小杉 ルート採点シミュレーター</title>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 12px; max-width: 600px; margin: 0 auto; }
     
     header { background: #1e293b; color: #fff; padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155; }
-    .depot-badge { font-size: 0.75rem; background: #2563eb; color: #fff; padding: 3px 8px; border-radius: 999px; font-weight: bold; }
+    .depot-badge { font-size: 0.75rem; background: #3b82f6; color: #fff; padding: 3px 8px; border-radius: 999px; font-weight: bold; }
+
+    /* 採点スコアボード */
+    .score-card { background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid #3b82f6; border-radius: 14px; padding: 16px; margin-bottom: 14px; text-align: center; box-shadow: 0 4px 14px rgba(0,0,0,0.4); }
+    .score-title { font-size: 0.8rem; color: #94a3b8; letter-spacing: 0.05em; }
+    .score-value { font-size: 3rem; font-weight: 900; margin: 4px 0; color: #38bdf8; text-shadow: 0 0 12px rgba(56,189,248,0.4); }
+    .score-value.rank-s { color: #f59e0b; text-shadow: 0 0 16px rgba(245,158,11,0.5); }
+    .score-value.rank-a { color: #10b981; }
+    .score-value.rank-b { color: #3b82f6; }
+    .score-value.rank-c { color: #ef4444; }
+
+    .score-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; border-top: 1px solid #334155; padding-top: 10px; font-size: 0.78rem; }
+    .stat-label { color: #64748b; margin-bottom: 2px; }
+    .stat-val { font-weight: bold; font-size: 0.95rem; color: #f8fafc; }
+
+    .comment-box { margin-top: 10px; padding: 8px 12px; border-radius: 8px; background: #1e293b; font-size: 0.76rem; color: #cbd5e1; text-align: left; line-height: 1.4; border-left: 4px solid #38bdf8; }
 
     .card { background: #1e293b; border-radius: 12px; padding: 14px; margin-bottom: 12px; border: 1px solid #334155; }
     h2 { font-size: 0.88rem; color: #94a3b8; margin-bottom: 8px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
     
-    .textarea-addr { width: 100%; background: #0f172a; color: #f8fafc; border: 1.5px solid #334155; border-radius: 8px; padding: 10px; font-size: 0.88rem; font-family: inherit; resize: vertical; min-height: 90px; margin-top: 4px; }
+    .textarea-addr { width: 100%; background: #0f172a; color: #f8fafc; border: 1.5px solid #334155; border-radius: 8px; padding: 10px; font-size: 0.88rem; font-family: inherit; resize: vertical; min-height: 80px; margin-top: 4px; }
     .textarea-addr:focus { outline: none; border-color: #38bdf8; }
 
     .btn-add { width: 100%; background: #334155; color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 0.88rem; cursor: pointer; margin-top: 6px; }
-    
-    .sort-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-    .btn-sort { color: #fff; border: none; padding: 12px 6px; border-radius: 10px; font-weight: bold; font-size: 0.9rem; cursor: pointer; text-align: center; }
-    .btn-cw { background: #10b981; box-shadow: 0 3px 8px rgba(16,185,129,0.3); }
-    .btn-ccw { background: #0284c7; box-shadow: 0 3px 8px rgba(2,132,199,0.3); }
-    .btn-sort:active { filter: brightness(0.85); }
+    .btn-add:active { filter: brightness(0.85); }
 
+    /* リストアイテム */
     .order-item { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
-    .order-item.sortable-ghost { opacity: 0.3; background: #334155; }
+    .order-item.sortable-ghost { opacity: 0.2; background: #3b82f6; }
     
     .drag-handle { cursor: grab; padding: 6px 10px; color: #64748b; font-size: 1.3rem; user-select: none; }
     .order-num { width: 28px; height: 28px; border-radius: 50%; background: #2563eb; color: #fff; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 8px; }
     .order-info { flex: 1; overflow: hidden; }
     .order-name { font-size: 0.88rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #f8fafc; }
-    .order-detail { font-size: 0.72rem; color: #94a3b8; margin-top: 2px; }
+    .order-zone { font-size: 0.72rem; display: inline-block; padding: 1px 6px; border-radius: 4px; margin-top: 2px; }
 
-    .btn-nav-single { background: #059669; color: #fff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: bold; flex-shrink: 0; }
+    .zone-north { background: #1e3a8a; color: #93c5fd; }
+    .zone-south { background: #14532d; color: #86efac; }
+    .zone-east { background: #701a75; color: #f472b6; }
+    .zone-west { background: #7c2d12; color: #fdba74; }
+
     .btn-delete { background: none; border: none; color: #ef4444; font-size: 0.85rem; cursor: pointer; padding: 4px 6px; margin-left: 6px; }
     
-    .btn-all-gmaps { display: block; text-align: center; background: #2563eb; color: #fff; text-decoration: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 12px rgba(37,99,235,0.3); margin-top: 12px; }
+    .btn-all-gmaps { display: block; text-align: center; background: #2563eb; color: #fff; text-decoration: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 12px rgba(37,99,235,0.3); margin-top: 14px; }
     .btn-all-gmaps:active { background: #1d4ed8; }
-
-    .route-preview { font-size: 0.78rem; color: #38bdf8; background: #0f172a; padding: 8px 12px; border-radius: 6px; margin-top: 8px; border: 1px solid #334155; line-height: 1.5; }
   </style>
 </head>
 <body>
@@ -49,189 +62,254 @@
   <header>
     <div>
       <div style="font-weight: bold; font-size: 0.95rem;">カクヤス武蔵小杉店</div>
-      <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">新丸子東2-906-14 発着</div>
+      <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">新丸子東2丁目 発着シミュレーター</div>
     </div>
-    <span class="depot-badge">一筆書きエリア巡回</span>
+    <span class="depot-badge">ルート採点モード</span>
   </header>
 
-  <div class="card">
-    <h2>
-      <span>📝 配達先の入力</span>
-      <span id="order-count" style="font-size: 0.75rem; color: #38bdf8;">登録: 0件</span>
-    </h2>
-
-    <textarea id="address-input" class="textarea-addr" placeholder="住所を改行で複数貼り付け可能"></textarea>
-    <button class="btn-add" onclick="addAddressesFromText()">住所をリストに追加 ＋</button>
+  <!-- リアルタイム採点ボード -->
+  <div class="score-card" id="score-board">
+    <div class="score-title">あなたのルートの総合スコア</div>
+    <div class="score-value rank-a" id="score-num">-- 点</div>
+    <div class="score-stats">
+      <div>
+        <div class="stat-label">推定帰還時間</div>
+        <div class="stat-val" id="stat-time">-- 分</div>
+      </div>
+      <div>
+        <div class="stat-label">総走行距離</div>
+        <div class="stat-val" id="stat-dist">-- km</div>
+      </div>
+      <div>
+        <div class="stat-label">線路横断回数</div>
+        <div class="stat-val" id="stat-cross">-- 回</div>
+      </div>
+    </div>
+    <div class="comment-box" id="score-comment">
+      配達先を入力し、並び順を調整すると採点結果が表示されます。
+    </div>
   </div>
 
-  <div class="sort-actions">
-    <button class="btn-sort btn-cw" onclick="sortByAngle(false)">
-      🔄 時計回りで一筆書き<br><span style="font-size:0.7rem; font-weight:normal;">北(丸子) ➔ 南(平間・元住吉)</span>
-    </button>
-    <button class="btn-sort btn-ccw" onclick="sortByAngle(true)">
-      🔄 反時計回りで一筆書き<br><span style="font-size:0.7rem; font-weight:normal;">南(平間・元住吉) ➔ 北(丸子)</span>
-    </button>
+  <div class="card">
+    <h2>
+      <span>📝 配達先リスト入力</span>
+      <span id="order-count" style="font-size: 0.75rem; color: #38bdf8;">0件</span>
+    </h2>
+    <textarea id="address-input" class="textarea-addr" placeholder="住所を複数行で貼り付け可能&#13;&#10;例:&#13;&#10;川崎市中原区小杉町1-526&#13;&#10;川崎市中原区新丸子町738"></textarea>
+    <button class="btn-add" onclick="addAddresses()">住所を追加する ＋</button>
   </div>
 
   <div class="card">
     <h2>
-      <span>📍 配達順リスト (☰を掴んで指で上下入替可能)</span>
-      <button class="btn-delete" onclick="clearAllOrders()">全件削除</button>
+      <span>📍 巡回順 (☰を上下にドラッグして採点スコアを競う)</span>
+      <button class="btn-delete" onclick="clearOrders()">全件削除</button>
     </h2>
-    <div id="route-summary" class="route-preview" style="display: none;"></div>
-    <div id="order-list" style="margin-top: 8px;">
+    <div id="order-list">
       <div style="text-align: center; color: #64748b; font-size: 0.82rem; padding: 20px;">
-        住所を登録してください。
+        住所を入力してください。
       </div>
     </div>
   </div>
 
-  <div id="all-gmaps-container" style="display: none; margin-bottom: 24px;">
-    <a id="btn-all-gmaps" class="btn-all-gmaps" href="#" target="_blank">
-      🗺️ Googleマップで全ルートを開く
+  <div id="gmaps-box" style="display: none; margin-bottom: 24px;">
+    <a id="btn-gmaps" class="btn-all-gmaps" href="#" target="_blank">
+      🗺️ この最高得点ルートでGoogleマップを起動
     </a>
   </div>
 
   <script>
     const DEPOT = {
-      name: "カクヤス 武蔵小杉店",
+      name: "カクヤス武蔵小杉店",
       lat: 35.577328,
-      lng: 139.662047
+      lng: 139.662047,
+      zone: "BASE"
     };
 
-    // 中原区主要エリアの基準座標（APIが代表点しか返せなくても即座に正確な方角・位置を特定）
-    const LANDMARKS = [
-      { key: "上丸子八幡町", lat: 35.5855, lng: 139.6675 },
-      { key: "丸子通", lat: 35.5825, lng: 139.6650 },
-      { key: "小杉御殿町", lat: 35.5825, lng: 139.6490 },
-      { key: "小杉陣屋町", lat: 35.5865, lng: 139.6525 },
-      { key: "新丸子東", lat: 35.5775, lng: 139.6635 },
-      { key: "小杉町", lat: 35.5750, lng: 139.6560 },
-      { key: "今井南町", lat: 35.5700, lng: 139.6520 },
-      { key: "木月住吉町", lat: 35.5660, lng: 139.6535 },
-      { key: "木月", lat: 35.5630, lng: 139.6500 },
-      { key: "西加瀬", lat: 35.5615, lng: 139.6590 },
-      { key: "苅宿", lat: 35.5605, lng: 139.6535 },
-      { key: "下沼部", lat: 35.5680, lng: 139.6700 },
-      { key: "市ノ坪", lat: 35.5665, lng: 139.6570 },
-      { key: "田尻町", lat: 35.5585, lng: 139.6770 },
-      { key: "北谷町", lat: 35.5620, lng: 139.6730 },
-      { key: "上平間", lat: 35.5600, lng: 139.6710 }
+    // 中原区主要エリアの特性・線路境界ゾーン定義
+    // ZONE_NORTH: 南武線・東横線の北東（丸子通、新丸子、上丸子）
+    // ZONE_WEST: 西側（小杉町、御殿町、今井南町）
+    // ZONE_SOUTH_WEST: 南西（木月、住吉町、苅宿）
+    // ZONE_SOUTH_EAST: 南東（下沼部、市ノ坪、平間、田尻町）
+    const AREA_ZONES = [
+      { key: "上丸子", zone: "NORTH", label: "北東(丸子)", lat: 35.5845, lng: 139.6690 },
+      { key: "丸子通", zone: "NORTH", label: "北東(丸子)", lat: 35.5825, lng: 139.6650 },
+      { key: "新丸子", zone: "NORTH", label: "北東(丸子)", lat: 35.5790, lng: 139.6620 },
+      { key: "小杉陣屋町", zone: "NORTH_WEST", label: "北西(陣屋町)", lat: 35.5865, lng: 139.6525 },
+      { key: "小杉御殿町", zone: "NORTH_WEST", label: "北西(御殿町)", lat: 35.5825, lng: 139.6490 },
+      { key: "小杉町", zone: "WEST", label: "西(小杉駅前)", lat: 35.5750, lng: 139.6560 },
+      { key: "今井南町", zone: "WEST", label: "西(今井)", lat: 35.5700, lng: 139.6520 },
+      { key: "木月", zone: "SOUTH_WEST", label: "南西(元住吉)", lat: 35.5630, lng: 139.6500 },
+      { key: "西加瀬", zone: "SOUTH_WEST", label: "南西(西加瀬)", lat: 35.5615, lng: 139.6590 },
+      { key: "苅宿", zone: "SOUTH_WEST", label: "南西(苅宿)", lat: 35.5605, lng: 139.6535 },
+      { key: "中丸子", zone: "SOUTH_EAST", label: "南東(横須賀線側)", lat: 35.5685, lng: 139.6630 },
+      { key: "下沼部", zone: "SOUTH_EAST", label: "南東(下沼部)", lat: 35.5680, lng: 139.6700 },
+      { key: "市ノ坪", zone: "SOUTH_EAST", label: "南東(市ノ坪)", lat: 35.5665, lng: 139.6570 },
+      { key: "平間", zone: "SOUTH_EAST", label: "南東(平間)", lat: 35.5600, lng: 139.6710 },
+      { key: "田尻町", zone: "SOUTH_EAST", label: "南東(田尻町)", lat: 35.5585, lng: 139.6770 },
+      { key: "北谷町", zone: "SOUTH_EAST", label: "南東(北谷町)", lat: 35.5620, lng: 139.6730 },
+      { key: "山王町", zone: "EAST", label: "東(山王町)", lat: 35.5760, lng: 139.6700 }
     ];
 
     let orders = [];
     let sortableInstance = null;
 
-    async function addAddressesFromText() {
+    function addAddresses() {
       const text = document.getElementById('address-input').value;
       const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      if (lines.length === 0) return alert('住所を入力してください');
+      if (lines.length === 0) return;
 
       for (const line of lines) {
-        let lat = null, lng = null;
-
-        // 1. ローカル辞書判定（ミリ秒で正確なブロックを特定）
-        const hit = LANDMARKS.find(lm => line.includes(lm.key));
-        if (hit) {
-          lat = hit.lat;
-          lng = hit.lng;
-        } else {
-          // 2. 国土地理院フォールバック
-          try {
-            const query = line.includes('川崎') ? line : `神奈川県川崎市中原区 ${line}`;
-            const res = await fetch(`https://msearch.gsi.go.jp/msearch/api/msearch/search?q=${encodeURIComponent(query)}`);
-            const data = await res.json();
-            if (data && data.length > 0) {
-              lng = data[0].geometry.coordinates[0];
-              lat = data[0].geometry.coordinates[1];
-            }
-          } catch (e) {}
+        let matched = AREA_ZONES.find(a => line.includes(a.key));
+        if (!matched) {
+          matched = { zone: "OTHER", label: "中原区", lat: 35.5750, lng: 139.6600 };
         }
 
         orders.push({
           id: String(Date.now() + Math.random()),
           name: line,
-          lat: lat,
-          lng: lng
+          zone: matched.zone,
+          label: matched.label,
+          lat: matched.lat,
+          lng: matched.lng
         });
       }
 
       document.getElementById('address-input').value = '';
-      renderOrders();
-      // 追加直後に自動で時計回りソート
-      sortByAngle(false);
+      renderList();
     }
 
-    // カクヤス店舗を中心とした極座標（方位角）スイープソート（一筆書き保証）
-    function sortByAngle(counterClockwise = false) {
-      const valid = orders.filter(o => o.lat && o.lng);
-      const invalid = orders.filter(o => !o.lat || !o.lng);
+    // 採点エンジンのコアロジック
+    function calculateScore() {
+      if (orders.length === 0) {
+        document.getElementById('score-num').innerText = '-- 点';
+        document.getElementById('stat-time').innerText = '-- 分';
+        document.getElementById('stat-dist').innerText = '-- km';
+        document.getElementById('stat-cross').innerText = '-- 回';
+        document.getElementById('score-comment').innerText = '配達先を入力してください。';
+        return;
+      }
 
-      if (valid.length < 2) return;
+      // 経路ポイント: 店舗 ➔ 1 ➔ 2 ➔ ... ➔ 店舗
+      const points = [DEPOT, ...orders, DEPOT];
 
-      valid.forEach(o => {
-        // 店舗からの相対ベクトル
-        const dy = o.lat - DEPOT.lat;
-        const dx = (o.lng - DEPOT.lng) * Math.cos(DEPOT.lat * Math.PI / 180);
-        
-        // 角度（ラジアン: -PI 〜 PI）
-        let angle = Math.atan2(dx, dy); // 北が0、時計回りがプラス
-        if (angle < 0) angle += 2 * Math.PI;
+      let totalKm = 0;
+      let railwayCrossings = 0;
+      let zoneShuffles = 0;
 
-        o.angle = angle;
-        o.dist = Math.hypot(dx, dy);
-      });
+      for (let i = 0; i < points.length - 1; i++) {
+        const from = points[i];
+        const to = points[i + 1];
 
-      // 角度順に並び替え
-      valid.sort((a, b) => {
-        return counterClockwise ? (b.angle - a.angle) : (a.angle - b.angle);
-      });
+        // 距離概算（マンハッタン距離＋道路補正 1.25倍）
+        const dLat = Math.abs(from.lat - to.lat) * 111;
+        const dLng = Math.abs(from.lng - to.lng) * 91;
+        const legKm = (dLat + dLng) * 1.25;
+        totalKm += legKm;
 
-      orders = [...valid, ...invalid];
-      renderOrders();
+        // 南武線・横須賀線の分断またぎ判定
+        const isFromNorth = from.zone.includes("NORTH") || from.zone === "BASE";
+        const isToNorth = to.zone.includes("NORTH") || to.zone === "BASE";
+        const isFromSouth = from.zone.includes("SOUTH");
+        const isToSouth = to.zone.includes("SOUTH");
+
+        if ((isFromNorth && isToSouth) || (isFromSouth && isToNorth)) {
+          railwayCrossings++;
+        }
+
+        // 同一ゾーン外への余計な出入り（ばらつき度）
+        if (from.zone !== to.zone && from.zone !== "BASE" && to.zone !== "BASE") {
+          zoneShuffles++;
+        }
+      }
+
+      // 推定時間計算（時速16kmの市内走行想定 ＋ 1件あたり3分の作業停車時間 ＋ 踏切・信号待ち1分/回）
+      const drivingMinutes = Math.round((totalKm / 16) * 60);
+      const deliveryMinutes = orders.length * 3;
+      const penaltyMinutes = railwayCrossings * 2.5; // 踏切・大通り越えロスタイム
+      const totalMinutes = Math.round(drivingMinutes + deliveryMinutes + penaltyMinutes);
+
+      // スコア計算（100点満点からの減点方式）
+      let score = 100;
+      
+      // 1. 線路またぎペナルティ（往復2回までは許容、3回目以降は1回につき-12点）
+      if (railwayCrossings > 2) {
+        score -= (railwayCrossings - 2) * 12;
+      }
+
+      // 2. 距離の無駄減点（件数×1.6kmを標準とし、それ以上伸びると減点）
+      const baselineKm = orders.length * 1.5 + 2.0;
+      if (totalKm > baselineKm) {
+        score -= Math.round((totalKm - baselineKm) * 5);
+      }
+
+      // 3. ゾーンが飛び飛びなら減点
+      if (zoneShuffles > orders.length * 0.8) {
+        score -= 10;
+      }
+
+      score = Math.max(20, Math.min(100, Math.round(score)));
+
+      // 画面反映
+      const scoreEl = document.getElementById('score-num');
+      scoreEl.innerText = `${score} 点`;
+      scoreEl.className = 'score-value ' + (score >= 90 ? 'rank-s' : score >= 80 ? 'rank-a' : score >= 65 ? 'rank-b' : 'rank-c');
+
+      document.getElementById('stat-time').innerText = `${totalMinutes} 分`;
+      document.getElementById('stat-dist').innerText = `${totalKm.toFixed(1)} km`;
+      document.getElementById('stat-cross').innerText = `${railwayCrossings} 回`;
+
+      // 講評コメント
+      let comment = '';
+      if (score >= 90) {
+        comment = '🏆 素晴らしい職人ルート！線路の渡り回数が最小限で、エリアごとの一筆書きが完璧に決まっています。最速で帰着可能です。';
+      } else if (score >= 80) {
+        comment = '👍 良好なルートです。大きな無駄はありません。踏切や幹線道路の右折を1箇所整理できれば満点クラスになります。';
+      } else if (score >= 65) {
+        comment = '⚠️ やや大回りの傾向。北側（丸子方面）と南側（元住吉・平間方面）を行き来していませんか？同エリアを固めるとさらに数分縮みます。';
+      } else {
+        comment = '🚨 線路や幹線道路を何度も行ったり来たりしています！北か南のどちらかを先に全件片付けてから逆側へ向かう順序に入れ替えてみてください。';
+      }
+
+      document.getElementById('score-comment').innerText = comment;
     }
 
-    function renderOrders() {
+    function renderList() {
       const container = document.getElementById('order-list');
-      document.getElementById('order-count').innerText = `登録: ${orders.length}件`;
+      document.getElementById('order-count').innerText = `${orders.length}件`;
 
       if (orders.length === 0) {
-        container.innerHTML = '<div style="text-align: center; color: #64748b; font-size: 0.82rem; padding: 20px;">住所を登録してください。</div>';
-        document.getElementById('all-gmaps-container').style.display = 'none';
-        document.getElementById('route-summary').style.display = 'none';
+        container.innerHTML = '<div style="text-align: center; color: #64748b; font-size: 0.82rem; padding: 20px;">住所を入力してください。</div>';
+        document.getElementById('gmaps-box').style.display = 'none';
+        calculateScore();
         return;
       }
 
       let html = '';
-      orders.forEach((o, index) => {
-        const dest = encodeURIComponent(o.name.includes('川崎') ? o.name : `川崎市中原区 ${o.name}`);
-        const singleGmapUrl = `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=driving`;
+      orders.forEach((o, idx) => {
+        let zoneClass = 'zone-north';
+        if (o.zone.includes('SOUTH')) zoneClass = 'zone-south';
+        if (o.zone === 'WEST') zoneClass = 'zone-west';
 
         html += `
           <div class="order-item" data-id="${o.id}">
             <div class="drag-handle">☰</div>
-            <div class="order-num">${index + 1}</div>
+            <div class="order-num">${idx + 1}</div>
             <div class="order-info">
               <div class="order-name">${o.name}</div>
-              <div class="order-detail">${o.lat ? '📍 エリア特定済' : '⚠️ 住所検索'}</div>
+              <span class="order-zone ${zoneClass}">${o.label}</span>
             </div>
-            <a href="${singleGmapUrl}" target="_blank" class="btn-nav-single">🚗 ナビ</a>
-            <button class="btn-delete" onclick="deleteOrder(${index})">✕</button>
+            <button class="btn-delete" onclick="deleteOrder(${idx})">✕</button>
           </div>
         `;
       });
 
       container.innerHTML = html;
+      document.getElementById('gmaps-box').style.display = 'block';
 
-      // ルート巡回プレビュー表示
-      const summary = document.getElementById('route-summary');
-      const routeFlow = ['カクヤス武蔵小杉', ...orders.map(o => o.name.replace(/川崎市中原区/, '')), 'カクヤス武蔵小杉'];
-      summary.innerHTML = `🏁 巡回順: <b>${routeFlow.join(' ➔ ')}</b>`;
-      summary.style.display = 'block';
+      // Googleマップ起動リンク生成
+      updateGmapsUrl();
+      calculateScore();
 
-      updateAllGmapsLink();
-
-      // 指での手動ドラッグ並び替え
       if (sortableInstance) sortableInstance.destroy();
       sortableInstance = new Sortable(container, {
         handle: '.drag-handle',
@@ -240,43 +318,27 @@
         onEnd: function () {
           const newIds = Array.from(container.children).map(el => el.getAttribute('data-id'));
           orders = newIds.map(id => orders.find(o => o.id === id));
-          renderOrders();
+          renderList();
         }
       });
     }
 
-    function updateAllGmapsLink() {
-      if (orders.length === 0) {
-        document.getElementById('all-gmaps-container').style.display = 'none';
-        return;
-      }
-
+    function updateGmapsUrl() {
       const origin = encodeURIComponent("神奈川県川崎市中原区新丸子東2-906-14");
-      const destination = origin;
-
-      // 経由地はGoogleマップが確実に認識する正確な住所表記で渡す
-      const waypoints = orders.map(o => {
-        const full = o.name.includes('川崎') ? o.name : `神奈川県川崎市中原区 ${o.name}`;
-        return encodeURIComponent(full);
-      }).join('|');
-
-      const allUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoints}&travelmode=driving`;
-
-      const btn = document.getElementById('btn-all-gmaps');
-      btn.href = allUrl;
-      document.getElementById('all-gmaps-container').style.display = 'block';
+      const waypoints = orders.map(o => encodeURIComponent(o.name.includes('川崎') ? o.name : `神奈川県川崎市中原区 ${o.name}`)).join('|');
+      const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${origin}&waypoints=${waypoints}&travelmode=driving`;
+      document.getElementById('btn-gmaps').href = url;
     }
 
     function deleteOrder(index) {
       orders.splice(index, 1);
-      renderOrders();
+      renderList();
     }
 
-    function clearAllOrders() {
-      if (orders.length === 0) return;
+    function clearOrders() {
       if (confirm('全件削除しますか？')) {
         orders = [];
-        renderOrders();
+        renderList();
       }
     }
   </script>
